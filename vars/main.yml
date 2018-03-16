@@ -1,0 +1,20 @@
+---
+fedora_packages:
+  - libselinux-python
+  - qemu-kvm 
+  - qemu-img 
+  - libvirt 
+  - virt-install 
+  - libvirt-client 
+  - libvirt-python
+vm_image_name: rhel-guest-image-7.5-114.x86_64.qcow2
+vm_image_dest: /mnt/test/{{vm_image_name}}
+vm_image: http://100.98.4.4/test/automation/{{vm_image_name}}
+
+# vars file for kvm
+guests:
+  - name: vm0
+    cpu: 2
+    mem: 2048
+    disk: /mnt/test/{{vm_image_name}}
+    network: "network=pp"

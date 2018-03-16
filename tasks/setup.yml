@@ -1,0 +1,75 @@
+---
+- name: check virtual technology enable for Intel and AMD
+  shell: egrep -wo 'vmx|svm' /proc/cpuinfo
+
+- name: check advanced AES support from CPU
+  shell: egrep -wo 'aes' /proc/cpuinfo
+
+- name: check  extended page table support 
+  shell: egrep -wo 'ept|npt' /proc/cpuinfo
+
+
+- include_tasks: '{{ ansible_distribution | lower }}.yml'
+  when: ansible_virtualization_type != 'docker'
+
+- include_tasks: 'data_disk.yml'
+  when: data_disk is defined 
+
+- name: automatically load kvm & kvm_intel kernel modules (1/2)
+  file:
+    path: "/etc/modules-load.d/{{ item }}.conf"
+    mode: 0644
+    state: touch
+  with_items:
+    - "kvm"
+    - "kvm_intel"
+  when: ansible_virtualization_type != 'docker'
+  
+- name: automatically load kvm & kvm_intel kernel modules (2/2)
+  lineinfile:
+    dest: "/etc/modules-load.d/{{ item}}.conf"
+    line: '{{ item }}'
+  with_items:
+    - "kvm"
+    - "kvm_intel"
+  when: ansible_virtualization_type != 'docker'
+
+
+- name: enable kvm nested virtualization
+  lineinfile:
+    dest: "/etc/modprobe.d/qemu-system-x86.conf"
+    line: 'options kvm_intel nested=1'
+  when: ansible_distribution == "Debian" and ansible_virtualization_type != 'docker'
+
+- name: touch kvm.conf file
+  file:
+    path: "/etc/modprobe.d/kvm.conf"
+    mode: 0644
+    state: touch
+  when: ( ansible_distribution == "Fedora" or ansible_distribution == "RedHat" ) and ansible_virtualization_type != 'docker'
+
+- name: enable kvm nested virtualization
+  lineinfile:
+    dest: "/etc/modprobe.d/kvm.conf"
+    line: 'options kvm_intel nested=1'
+  when: ( ansible_distribution == "Fedora" or ansible_distribution == "RedHat" ) and ansible_virtualization_type != 'docker'
+
+
+- name: reload kernel module
+  service: name=systemd-modules-load.service state=restarted
+  when: ansible_virtualization_type != 'docker'
+
+
+- name: start libvirtd
+  service: name=libvirtd state=started enabled=yes
+  register: libvirtd
+
+- name: wait for libvirtd to get up
+  pause: seconds=30
+  when: libvirtd.changed
+
+
+- name: destroy default storage
+  shell: virsh pool-destroy default; virsh pool-undefine default; virsh  pool-define-as --name default --type dir --target {{data_disk_mount_path}}; virsh  pool-autostart default; virsh pool-build default; virsh pool-start default
+
+

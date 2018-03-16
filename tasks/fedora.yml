@@ -1,0 +1,8 @@
+---
+- name: install required packages 
+  dnf:
+    name: "{{item}}"
+    state: latest
+  with_items:
+    - "{{fedora_packages}}"
+

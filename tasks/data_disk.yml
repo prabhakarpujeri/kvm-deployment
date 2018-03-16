@@ -1,0 +1,34 @@
+---
+- name: get current partition detail
+  parted: 
+    device: "{{data_disk}}"
+    unit: MiB
+  register: disk_info
+
+- name: remove all partition
+  parted:
+    device: "{{data_disk}}"
+    number: "{{ item.num }}"
+    state: absent
+  with_items:
+    - "{{ disk_info.partitions }}"
+- name: create new primary partition
+  parted:
+    device: "{{data_disk}}"
+    number: 1
+    flags: [ lvm ]
+    part_start: 0%
+    part_end: 100%
+    state: present
+- name: create file system
+  filesystem:
+    fstype: xfs
+    dev: "{{data_disk}}1"
+- name: mount data disk
+  mount:
+    path: "{{data_disk_mount_path}}"
+    src: "{{data_disk}}1"
+    fstype: xfs
+    opts: noatime
+    state: present
+

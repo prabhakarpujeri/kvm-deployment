@@ -1,0 +1,8 @@
+- include_tasks: setup.yml
+  when: "setup_kvm == 'yes'"
+
+- include_tasks: create_vm.yml
+  when: "create_vm == 'yes'"
+
+
+

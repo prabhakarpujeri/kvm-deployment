@@ -1,0 +1,33 @@
+- name: get vm image for RHEL7
+  get_url:
+    url: "{{vm_image}}"
+    dest: "{{vm_image_dest}}"
+    force: no
+
+- name: create vm
+  command: virt-install --name {{item.name}}
+                 --ram {{ item.mem }}
+                 --vcpus {{ item.cpu }}
+                 --network network:default
+                 --disk {{item.disk}}
+                 --import
+                 --autostart
+                 --os-variant rhel7
+                 --noautoconsole
+  with_items:
+    - "{{guests}}"
+
+- name: shutdown templete
+  command: virsh destroy vm0
+- name: wait 5 sec
+  pause: 
+    seconds: 5
+
+- name: ceate vm{{item}}
+  command: virt-clone --original vm0 --auto-clone --name vm{{item}} --file /mnt/test/vm{{item}}.qcow2
+  with_sequence: end=10 start=1
+
+
+- name: start vms
+  command: "virsh start  vm{{item}}"
+  with_sequence: end=10 start=0
