@@ -25,9 +25,9 @@
 
 - name: ceate vm{{item}}
   command: virt-clone --original vm0 --auto-clone --name vm{{item}} --file /mnt/test/vm{{item}}.qcow2
-  with_sequence: end=10 start=1
+  with_sequence: end="{{num_vms|int}}" start=1
 
 
 - name: start vms
   command: "virsh start  vm{{item}}"
-  with_sequence: end=10 start=0
+  with_sequence: end="{{num_vms|int}}" start=0

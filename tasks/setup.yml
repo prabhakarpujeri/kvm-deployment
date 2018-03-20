@@ -8,6 +8,7 @@
 - name: check  extended page table support 
   shell: egrep -wo 'ept|npt' /proc/cpuinfo
 
+- debug: msg="{{ansible_distribution}}"
 
 - include_tasks: '{{ ansible_distribution | lower }}.yml'
   when: ansible_virtualization_type != 'docker'
@@ -69,7 +70,7 @@
   when: libvirtd.changed
 
 
-- name: destroy default storage
-  shell: virsh pool-destroy default; virsh pool-undefine default; virsh  pool-define-as --name default --type dir --target {{data_disk_mount_path}}; virsh  pool-autostart default; virsh pool-build default; virsh pool-start default
+  #  - name: destroy default storage
+  #    shell: virsh pool-destroy default; virsh pool-undefine default; virsh  pool-define-as --name default --type dir --target {{data_disk_mount_path}}; virsh  pool-autostart default; virsh pool-build default; virsh pool-start default
 
 

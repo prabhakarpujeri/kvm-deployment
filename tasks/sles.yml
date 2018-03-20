@@ -1,0 +1,12 @@
+- name: install kvm-server
+  zypper:
+    name: kvm_server
+    type: pattern
+    state: latest
+
+- name: install kvm-tools
+  zypper:
+    name: kvm_tools
+    type: pattern
+    state: latest
+
